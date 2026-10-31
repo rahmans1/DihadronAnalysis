@@ -37,12 +37,9 @@ the clone is, so no paths need editing. Clone and commit from inside eic-shell, 
 # in eic-shell:
 python3 make_lists.py r2                    # the five near-complete samples
 # outside eic-shell:
-./submit.sh r2 truth 100                    # first 100 jobs
-./submit.sh r2 reco 100
-condor_q
-# later: leave out the number to submit everything still missing
 ./submit.sh r2 truth
 ./submit.sh r2 reco
+condor_q
 # in eic-shell:
 python3 check.py r2 truth
 python3 check.py r2 reco
@@ -55,8 +52,9 @@ python3 check_merged.py r2 reco
 python3 plots/make_decade1_plots.py r2
 ```
 
-`check.py` lists missing and bad outputs. Delete a bad output and run `submit.sh`
-again to redo only those jobs. Use a new run name to pick up newly finished files.
+`submit.sh` skips finished and queued jobs, so running it again submits only what is
+missing. `check.py` lists missing and bad outputs. Delete a bad output and run
+`submit.sh` again to redo only those jobs. Use a new run name to pick up newly finished files.
 
 Plots read the merged files, so rerun `merge.sh` and `check_merged.py` after any
 output changes. `make_decade1_plots.py` expects the three first-decade samples listed

@@ -35,7 +35,7 @@ the clone is, so no paths need editing. Clone and commit from inside eic-shell, 
 ```bash
 ./build.sh                                  # outside eic-shell
 # in eic-shell:
-python3 make_lists.py r2                    # the five near-complete samples
+python3 make_lists.py r2                    # runs epic_unique_files.py on the five near-complete samples
 # outside eic-shell:
 ./submit.sh r2 truth
 ./submit.sh r2 reco
@@ -70,6 +70,16 @@ From Gabriel's own commands: trigger 2-50 GeV, associate 1-50 GeV, `doSubCut` an
 `make_lists.py` defaults to the five samples at 99.5% of target or above on
 2026-10-30: `p4491`, `p4494` (ep), `p4493` (eAg), `p4492`, `p4496` (eAu). Use
 `--pattern` for others.
+
+### File selection
+
+A sample can have the same file in several production tries. `make_lists.py` runs
+`epic_unique_files.py` first, which finds the base dataset and every `tryN` dataset of
+each sample. It keeps one copy of each file name, from the latest try with an available
+disk replica, and drops files with no disk replica. If a sample is in several matching
+campaigns, it lists only the latest one. The result is `runs/<name>/files.txt` and the
+manifest `runs/<name>/files.csv`. `make_lists.py` then applies `excluded_files.txt` and
+groups the rest into jobs.
 
 ### eAg exclusion
 

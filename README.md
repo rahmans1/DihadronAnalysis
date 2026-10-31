@@ -60,6 +60,26 @@ Plots read the merged files, so rerun `merge.sh` and `check_merged.py` after any
 output changes. `make_decade1_plots.py` expects the three first-decade samples listed
 at its top.
 
+## Files kept for each run
+
+Each run keeps these in git under `runs/<name>/`. Everything else there, such as lists,
+logs and job outputs, stays out of git. Run `r1` has all of them.
+
+| File | Contents |
+|---|---|
+| `files.csv` | Input manifest, one row per file from `epic_unique_files.py`, before exclusions: sample, campaign, file, try, dataset, size, checksum, storage site and URL. Stored with LFS |
+| `excluded_files.txt` | The files left out of this run |
+| `jobs.csv` | What was analysed, one row per job: sample, job number, system, list path, number of files and Rucio event count |
+| `merged/<mode>/<sample>.root` | Analysis results: the job outputs of one sample and mode (`truth` or `reco`), added with `hadd`. Stored with LFS |
+
+`files.csv` minus `excluded_files.txt` is the list of files that were analysed. `jobs.csv`
+has the counts, not the file names.
+
+Each merged file has `hCounters` at the top for event and trigger totals, plus one
+directory per x decade, such as `x_1e-4_1e-3/`, holding the Δφ histograms and the
+trigger and associate distributions. The macro's header describes the full layout. Each
+sample is filled by the event's x, so reco pairs can land in a neighbouring decade.
+
 ## Settings
 
 From Gabriel's own commands: trigger 2-50 GeV, associate 1-50 GeV, `doSubCut` and

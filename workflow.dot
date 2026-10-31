@@ -1,0 +1,127 @@
+// Workflow of the ePIC dihadron analysis, run r1.
+// Render: dot -Tpdf workflow.dot -o workflow.pdf   (also -Tpng -Gdpi=150, -Tsvg)
+digraph workflow {
+  graph [rankdir=TB, fontname="Helvetica", fontsize=20, labelloc=t, nodesep=0.35, ranksep=0.5,
+         compound=true, newrank=true, splines=true, bgcolor="white",
+         label=<<b>ePIC multi-trigger dihadron analysis: workflow</b><br/><font point-size="13">Run in eic_xl:26.07.3-stable. Paths are relative to the repository. Counts are from run r1.</font><br/> >];
+  node  [fontname="Helvetica", fontsize=11, margin="0.12,0.07"];
+  edge  [fontname="Helvetica", fontsize=9, color="#555555", fontcolor="#444444", arrowsize=0.7];
+
+  // Legend
+  subgraph cluster_legend {
+    label=<<b>Legend</b>>; fontsize=11; style="rounded"; color="#BBBBBB"; rank=same;
+    leg_script [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8", label="Script"];
+    leg_data   [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B", label="File or data"];
+    leg_ext    [shape=cylinder, style=filled, fillcolor="#E1D5E7", color="#7A5A94", label="External"];
+    leg_script -> leg_data -> leg_ext [style=invis];
+  }
+
+  // Shared settings
+  config [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+          label=<<b>config.sh</b><br/>trigger 2-50 GeV, associate 1-50 GeV<br/>doSubCut, cutdecay off; pidMode=0<br/>container image; 2 GB<br/>also sourced by merge.sh>];
+
+  // 1. Job lists
+  subgraph cluster_lists {
+    label=<<b>1. Build job lists</b>>; labeljust=l; fontsize=13; style="rounded,filled"; fillcolor="#F7FAFD"; color="#9DB9D3";
+    rucio  [shape=cylinder, style=filled, fillcolor="#E1D5E7", color="#7A5A94",
+            label=<<b>Rucio</b><br/>5 pythia6-lhapdf 1.1.0 RECO samples>];
+    unique [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>epic_unique_files.py</b><br/>one copy of each file across tries>];
+    make   [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>make_lists.py</b><br/>groups files into jobs<br/>(max 100 files or 100,000 events per job)>];
+    manif  [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+            label=<<b>files.txt, files.csv</b><br/>197,292 files>];
+    lists  [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+            label=<<b>lists/&lt;sample&gt;/list_NNNN.txt, jobs.csv</b><br/>197,267 files, 39,186,659 events, 1,975 jobs>];
+    excl   [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+            label=<<b>excluded_files.txt</b><br/>25 eAg one-event files that crash the podio chain<br/>(removed by hand in r1, automatic since)>];
+  }
+
+  // 2. Macro
+  subgraph cluster_macro {
+    label=<<b>2. Compile the macro</b>>; labeljust=l; fontsize=13; style="rounded,filled"; fillcolor="#F7FAFD"; color="#9DB9D3";
+    macro [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+           label=<<b>ePIC_multikt2.C</b><br/>the analysis macro>];
+    build [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+           label=<<b>build.sh</b><br/>compiles once with ACLiC>];
+    lib   [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+           label=<<b>ePIC_multikt2_C.so</b>>];
+  }
+
+  // 3. Condor
+  subgraph cluster_batch {
+    label=<<b>3. Run on BNL Condor (truth and reco)</b>>; labeljust=r; labelloc=b; fontsize=13; style="rounded,filled"; fillcolor="#F7FAFD"; color="#9DB9D3";
+    submit [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>submit.sh</b><br/>one job per list, skips finished jobs>];
+    runjob [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>run_job.sh + ePIC_multikt2.C</b><br/>one job, 1 core>];
+    xrd    [shape=cylinder, style=filled, fillcolor="#E1D5E7", color="#7A5A94",
+            label=<<b>XRootD</b><br/>EDM4eic RECO files>];
+    theory [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+            label=<<b>TH/Cth_ep, Cth_eAu, Cth_eAg.root</b><br/>saturation weights, in the repository (LFS)>];
+    out    [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+            label=<<b>output/&lt;mode&gt;/&lt;sample&gt;/out_NNNN.root</b><br/>1,975 files per mode>];
+  }
+
+  // 4. Check and merge
+  subgraph cluster_merge {
+    label=<<b>4. Check and merge</b>>; labeljust=l; labelloc=b; fontsize=13; style="rounded,filled"; fillcolor="#F7FAFD"; color="#9DB9D3";
+    check  [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>check.py</b><br/>events read vs jobs.csv>];
+    merge  [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>merge.sh</b><br/>hadd per sample>];
+    merged [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+            label=<<b>merged/&lt;mode&gt;/&lt;sample&gt;.root</b><br/>10 files>];
+    checkm [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+            label=<<b>check_merged.py</b><br/>merged vs sum of job outputs>];
+  }
+
+  // 5. Plots
+  subgraph cluster_plots {
+    label=<<b>5. Preliminary plots (first x decade)</b>>; labeljust=l; labelloc=b; fontsize=13; style="rounded,filled"; fillcolor="#F7FAFD"; color="#9DB9D3";
+    plot [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
+          label=<<b>plots/make_decade1_plots.py</b><br/>C(&#916;&#966;) and double-Gaussian fits<br/>reads the merged files>];
+    figs [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
+          label=<<b>plots/&lt;run&gt;/decade1_truth, decade1_reco</b> (.png, .pdf)<br/>fit.json, prelim_decade1.root>];
+  }
+
+  // Step 1
+  rucio  -> unique [label=" sample paths"];
+  unique -> manif;
+  manif  -> make;
+  rucio  -> make   [label=" event counts"];
+  make   -> unique [style=dotted, constraint=false, label=" calls"];
+  excl   -> make   [label=" left out"];
+  make   -> lists;
+
+  // Step 2
+  macro -> build;
+  build -> lib;
+
+  // Step 3
+  lists  -> submit [label=" jobs.csv"];
+  submit -> runjob [label=" condor_submit"];
+  lists  -> runjob [label=" list_NNNN.txt"];
+  lib    -> runjob [label=" reused"];
+  xrd    -> runjob;
+  theory -> runjob;
+  runjob -> out;
+
+  // Step 4
+  out    -> check;
+  check  -> merge  [style=dashed, label=" pass"];
+  out    -> merge;
+  merge  -> merged;
+  merged -> checkm;
+  out    -> checkm;
+
+  // Step 5
+  merged -> plot;
+  plot -> figs;
+
+  // Settings
+  edge [color="#B8860B", style=dashed, arrowsize=0.6];
+  config -> build;
+  config -> submit;
+  config -> runjob;
+}

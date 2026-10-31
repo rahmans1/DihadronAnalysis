@@ -1,0 +1,16 @@
+*.root
+*.so
+*.d
+*.pcm
+workflow.png
+workflow.svg
+plots/*
+!plots/make_decade1_plots.py
+runs/*/*
+!runs/*/jobs.csv
+!runs/*/files.csv
+!runs/*/excluded_files.txt
+!runs/*/merged/
+!runs/*/merged/**
+!TH/*.root
+runs/smoke_*/

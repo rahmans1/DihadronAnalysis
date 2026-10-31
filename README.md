@@ -5,10 +5,31 @@ job per input list, inside the `eic_xl:26.07.3-stable` container. Files are read
 over XRootD, mostly from BNL-XRD.
 
 Clone onto `/gpfs02`, which the workers can read. Everything else follows from where
-the clone is, so no paths need editing. Clone and commit from inside eic-shell, because
+the clone is, so no paths need editing. Run git commands from inside eic-shell, because
 `git-lfs` is in the container but not on the submit host. `TH/`, the merged files and
-`files.csv` go through LFS. A clone made without LFS gets pointer files instead; run
-`git lfs pull` in eic-shell to fetch them.
+`files.csv` go through LFS. A plain `git clone` gets small pointer files instead, even
+in eic-shell, so run `git lfs install --local` and then `git lfs pull` in the clone.
+
+## Rerun the plots
+
+To remake the plots without rerunning the analysis, fetch only the merged files, about
+7 MB of the 274 MB in LFS. You need access to this repository, because it is private.
+Git asks for your GitHub username and a personal access token, not your password.
+
+```bash
+# start the container on a BNL node
+singularity shell -B /gpfs,/gpfs02,/cvmfs /cvmfs/singularity.opensciencegrid.org/eicweb/eic_xl:26.07.3-stable
+
+# inside the container
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/rahmans1/DihadronAnalysis.git
+cd DihadronAnalysis
+git lfs install --local                     # needed, or the pull leaves pointer files
+git lfs pull --include="runs/r1/merged/**"
+python3 plots/make_decade1_plots.py r1
+```
+
+The plots and `fit.json` are written to `plots/r1/`. To run the full analysis, clone onto
+`/gpfs02` and fetch everything, including `TH/`, with `git lfs pull` and no `--include`.
 
 ## Files
 

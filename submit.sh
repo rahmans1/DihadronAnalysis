@@ -12,7 +12,7 @@ RUNDIR=$HERE/runs/$RUN
 # LFS pointer files are about 130 bytes, the real theory files about 55 MB
 for s in ep eAu eAg; do
   [ "$(stat -Lc %s "$HERE/TH/Cth_$s.root" 2>/dev/null || echo 0)" -gt 1000000 ] ||
-    { echo "TH/Cth_$s.root is missing or an LFS pointer: run git lfs pull in eic-shell" >&2; exit 1; }
+    { echo "TH/Cth_$s.root is missing or an LFS pointer: run git lfs install --local and git lfs pull in eic-shell" >&2; exit 1; }
 done
 LOGDIR=$RUNDIR/logs/$MODE
 mkdir -p "$LOGDIR"

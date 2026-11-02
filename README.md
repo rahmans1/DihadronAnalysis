@@ -29,7 +29,7 @@ python3 plots/make_decade_plots.py truth reco
 ```
 
 The plots of all three x decades, `fit_<mode>.json` and `prelim_<mode>.root` are written to
-`plots/r1_r2/`. To run the full analysis, clone onto
+`plots/r1_r2/`, where the current ones are kept in git. To run the full analysis, clone onto
 `/gpfs02` and fetch everything, including `TH/`, with `git lfs pull` and no `--include`.
 
 ## Files

@@ -6,6 +6,8 @@ workflow.png
 workflow.svg
 plots/*
 !plots/make_decade_plots.py
+!plots/r1_r2/
+!plots/r1_r2/**
 runs/*/*
 !runs/*/jobs.csv
 !runs/*/files.csv

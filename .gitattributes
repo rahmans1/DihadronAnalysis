@@ -1,3 +1,4 @@
 runs/*/merged/**/*.root filter=lfs diff=lfs merge=lfs -text
 runs/*/files.csv filter=lfs diff=lfs merge=lfs -text
 TH/*.root filter=lfs diff=lfs merge=lfs -text
+plots/r1_r2/*.root filter=lfs diff=lfs merge=lfs -text

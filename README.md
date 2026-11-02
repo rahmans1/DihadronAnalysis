@@ -28,7 +28,9 @@ git lfs pull --include="runs/r1/merged/**"
 python3 plots/make_decade1_plots.py r1
 ```
 
-The plots and `fit.json` are written to `plots/r1/`. To run the full analysis, clone onto
+The plots and `fit.json` are written to `plots/r1/`. To remake the plots of all three x
+decades, pull `runs/r2/merged/**` as well and run
+`python3 plots/make_decade_plots.py truth reco`. They are written to `plots/r1_r2/`. To run the full analysis, clone onto
 `/gpfs02` and fetch everything, including `TH/`, with `git lfs pull` and no `--include`.
 
 ## Files
@@ -41,6 +43,7 @@ The plots and `fit.json` are written to `plots/r1/`. To run the full analysis, c
 | `build.sh` | Compiles the macro; run after any macro change |
 | `make_lists.py` | Builds job lists from Rucio, leaving out `excluded_files.txt` (run in eic-shell) |
 | `excluded_files.txt` | Files every run must leave out |
+| `excluded_r2.txt` | `excluded_files.txt` plus the repeated base files of `p4495` and `p4497`, used for run `r2` |
 | `epic_unique_files.py` | Picks one copy of each file across tries; called by `make_lists.py` |
 | `submit.sh` | Submits one job per list, skipping finished ones |
 | `run_job.sh` | What each job runs |
@@ -48,6 +51,7 @@ The plots and `fit.json` are written to `plots/r1/`. To run the full analysis, c
 | `merge.sh` | `hadd` per sample |
 | `check_merged.py` | Compares merged histograms with the sum of job outputs (run in eic-shell) |
 | `plots/make_decade1_plots.py` | First-decade C(Δφ) plots and fits from the merged files, written to `plots/<run>/` (run in eic-shell) |
+| `plots/make_decade_plots.py` | C(Δφ) plots and fits for all three x decades from the merged `r1` and `r2` files, written to `plots/r1_r2/` (run in eic-shell) |
 | `workflow.dot` | Workflow diagram source; `workflow.pdf`, `.png` and `.svg` are the rendered versions |
 | `runs/<name>/` | Lists, logs, outputs and merged files of one run |
 
@@ -56,21 +60,21 @@ The plots and `fit.json` are written to `plots/r1/`. To run the full analysis, c
 ```bash
 ./build.sh                                  # outside eic-shell
 # in eic-shell:
-python3 make_lists.py r2                    # runs epic_unique_files.py on the five near-complete samples
+python3 make_lists.py <run>                 # runs epic_unique_files.py on the five r1 samples by default
 # outside eic-shell:
-./submit.sh r2 truth
-./submit.sh r2 reco
+./submit.sh <run> truth
+./submit.sh <run> reco
 condor_q
 # in eic-shell:
-python3 check.py r2 truth
-python3 check.py r2 reco
+python3 check.py <run> truth
+python3 check.py <run> reco
 # outside eic-shell:
-./merge.sh r2 truth
-./merge.sh r2 reco
+./merge.sh <run> truth
+./merge.sh <run> reco
 # in eic-shell:
-python3 check_merged.py r2 truth
-python3 check_merged.py r2 reco
-python3 plots/make_decade1_plots.py r2
+python3 check_merged.py <run> truth
+python3 check_merged.py <run> reco
+python3 plots/make_decade1_plots.py <run>   # or plots/make_decade_plots.py truth reco
 ```
 
 `submit.sh` skips finished and queued jobs, so running it again submits only what is
@@ -79,12 +83,32 @@ missing. `check.py` lists missing and bad outputs. Delete a bad output and run
 
 Plots read the merged files, so rerun `merge.sh` and `check_merged.py` after any
 output changes. `make_decade1_plots.py` expects the three first-decade samples listed
-at its top.
+at its top. `make_decade_plots.py` lists the run of each sample in `DECADES`.
+
+## Runs
+
+`r1` is the default samples, made with `python3 make_lists.py r1`.
+
+`r2` is the other four `pythia6-lhapdf` 1.1.0 samples, with the same code, settings and
+container image (`.images/ae/429b8b3c778286d8ab58fda6df0d8c732cb61793ba56ff231f81eca08fba77`
+behind the `26.07.3-stable` tag). It was built with `--exclude excluded_r2.txt`:
+
+```bash
+B=RECO/26.07.3/epic_craterlake/SIDIS/pythia6-lhapdf/1.1.0
+python3 make_lists.py r2 --exclude excluded_r2.txt --pattern \
+  $B/ep_noradcor/9x130/x_1e-2to1e-1 \
+  $B/eAu_EPPS16_noradcor/9x100/x_1e-3to1e-2 \
+  $B/eAg_EPPS16_noradcor/9x115/x_1e-3to1e-2 \
+  $B/eAg_EPPS16_noradcor/9x115/x_1e-2to1e-1
+```
+
+Rucio changes over time: `runs/r2/files.csv` is the record of the inputs, and this command
+run later also finds files delivered since.
 
 ## Files kept for each run
 
 Each run keeps these in git under `runs/<name>/`. Everything else there, such as lists,
-logs and job outputs, stays out of git. Run `r1` has all of them.
+logs and job outputs, stays out of git. Runs `r1` and `r2` have all of them.
 
 | File | Contents |
 |---|---|

@@ -80,9 +80,9 @@ digraph workflow {
   subgraph cluster_plots {
     label=<<b>5. Preliminary plots (first x decade)</b>>; labeljust=l; labelloc=b; fontsize=13; style="rounded,filled"; fillcolor="#F7FAFD"; color="#9DB9D3";
     plot [shape=box, style="rounded,filled", fillcolor="#CFE2F3", color="#2F6DA8",
-          label=<<b>plots/make_decade1_plots.py</b><br/>C(&#916;&#966;) and double-Gaussian fits<br/>reads the merged files>];
+          label=<<b>plots/make_decade_plots.py</b><br/>C(&#916;&#966;) and double-Gaussian fits<br/>reads the merged files>];
     figs [shape=note, style=filled, fillcolor="#FFF2CC", color="#B8860B",
-          label=<<b>plots/&lt;run&gt;/decade1_truth, decade1_reco</b> (.png, .pdf)<br/>fit.json, prelim_decade1.root>];
+          label=<<b>plots/r1_r2/decade&lt;n&gt;_&lt;mode&gt;</b> (.png, .pdf)<br/>fit_&lt;mode&gt;.json, prelim_&lt;mode&gt;.root>];
   }
 
   // Step 1

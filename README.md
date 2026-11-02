@@ -13,7 +13,7 @@ in eic-shell, so run `git lfs install --local` and then `git lfs pull` in the cl
 ## Rerun the plots
 
 To remake the plots without rerunning the analysis, fetch only the merged files, about
-7 MB of the 274 MB in LFS. You need access to this repository, because it is private.
+9 MB of the 279 MB in LFS. You need access to this repository, because it is private.
 Git asks for your GitHub username and a personal access token, not your password.
 
 ```bash
@@ -24,13 +24,12 @@ singularity shell -B /gpfs,/gpfs02,/cvmfs /cvmfs/singularity.opensciencegrid.org
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/rahmans1/DihadronAnalysis.git
 cd DihadronAnalysis
 git lfs install --local                     # needed, or the pull leaves pointer files
-git lfs pull --include="runs/r1/merged/**"
-python3 plots/make_decade1_plots.py r1
+git lfs pull --include="runs/r1/merged/**,runs/r2/merged/**"
+python3 plots/make_decade_plots.py truth reco
 ```
 
-The plots and `fit.json` are written to `plots/r1/`. To remake the plots of all three x
-decades, pull `runs/r2/merged/**` as well and run
-`python3 plots/make_decade_plots.py truth reco`. They are written to `plots/r1_r2/`. To run the full analysis, clone onto
+The plots of all three x decades, `fit_<mode>.json` and `prelim_<mode>.root` are written to
+`plots/r1_r2/`. To run the full analysis, clone onto
 `/gpfs02` and fetch everything, including `TH/`, with `git lfs pull` and no `--include`.
 
 ## Files
@@ -50,7 +49,6 @@ decades, pull `runs/r2/merged/**` as well and run
 | `check.py` | Compares events read with `jobs.csv`, which holds the Rucio counts (run in eic-shell) |
 | `merge.sh` | `hadd` per sample |
 | `check_merged.py` | Compares merged histograms with the sum of job outputs (run in eic-shell) |
-| `plots/make_decade1_plots.py` | First-decade C(Δφ) plots and fits from the merged files, written to `plots/<run>/` (run in eic-shell) |
 | `plots/make_decade_plots.py` | C(Δφ) plots and fits for all three x decades from the merged `r1` and `r2` files, written to `plots/r1_r2/` (run in eic-shell) |
 | `workflow.dot` | Workflow diagram source; `workflow.pdf`, `.png` and `.svg` are the rendered versions |
 | `runs/<name>/` | Lists, logs, outputs and merged files of one run |
@@ -74,7 +72,7 @@ python3 check.py <run> reco
 # in eic-shell:
 python3 check_merged.py <run> truth
 python3 check_merged.py <run> reco
-python3 plots/make_decade1_plots.py <run>   # or plots/make_decade_plots.py truth reco
+python3 plots/make_decade_plots.py truth reco
 ```
 
 `submit.sh` skips finished and queued jobs, so running it again submits only what is
@@ -82,8 +80,7 @@ missing. `check.py` lists missing and bad outputs. Delete a bad output and run
 `submit.sh` again to redo only those jobs. Use a new run name to pick up newly finished files.
 
 Plots read the merged files, so rerun `merge.sh` and `check_merged.py` after any
-output changes. `make_decade1_plots.py` expects the three first-decade samples listed
-at its top. `make_decade_plots.py` lists the run of each sample in `DECADES`.
+output changes. `make_decade_plots.py` lists the run of each sample in `DECADES`.
 
 ## Runs
 
